@@ -157,6 +157,8 @@ RUN if [ "$WITH_CLI_SAPI" = "yes" ]; \
 		echo -n ', "_run_cli", "_wasm_add_cli_arg"' >> /root/.EXPORTED_FUNCTIONS && \
 		echo -n ' -DWITH_CLI_SAPI=1 ' >> /root/.emcc-php-wasm-flags && \
 		/root/replace.sh 's/GET_SHELL_CB\(cb\);/(cb) = php_cli_get_shell_callbacks();/g' /root/php-src/ext/readline/readline_cli.c; \
+		# Avoid a symbol conflict between php_cli.c and php_embed.c
+		/root/replace.sh 's/\bHARDCODED_INI\b/HARDCODED_EMBED_INI/g' /root/php-src/sapi/embed/php_embed.c \
 	else \
 		echo -n ' --disable-cli ' >> /root/.php-configure-flags; \
 	fi;
@@ -166,7 +168,8 @@ RUN if [ "$WITH_LIBXML" = "yes" ]; \
 	then \
 		set -euxo pipefail;\
 		echo -n ' --enable-libxml --with-libxml --with-libxml-dir=/root/lib --enable-dom --enable-xml --enable-simplexml --enable-xmlreader --enable-xmlwriter' >> /root/.php-configure-flags && \
-		echo -n ' -I /root/lib -I /root/lib/include/libxml2 -lxml2' >> /root/.emcc-php-wasm-flags && \
+		# TODO: Look at restoring -lxml2 here, probably by eliminating it from library pre-build
+		echo -n ' -I /root/lib -I /root/lib/include/libxml2 ' >> /root/.emcc-php-wasm-flags && \
 		echo -n ' /root/lib/lib/libxml2.a' >> /root/.emcc-php-wasm-sources && \
 		# Libxml check is wrong in PHP < 7.4.0.
 		# In the regular cc it's just a warning, but in the emscripten's emcc that's an error:
@@ -196,7 +199,8 @@ RUN if [ "$WITH_GD" = "yes" ]; \
 		else \
 			echo -n ' --with-png-dir=/root/lib --with-jpeg --with-webp --with-gd --enable-gd ' >> /root/.php-configure-flags; \
 		fi; \
-		echo -n ' -I /root/lib -I /root/install -lz -lpng16 -lwebp -lsharpyuv -ljpeg ' >> /root/.emcc-php-wasm-flags; \
+		# TODO: Restore linking with -lz once we understand and fix the source of duplicate symbols
+		echo -n ' -I /root/lib -I /root/install -lpng16 -lwebp -lsharpyuv -ljpeg ' >> /root/.emcc-php-wasm-flags; \
 	fi;
 
 # Add openssl if needed
@@ -333,7 +337,7 @@ CURL_LIBS="-I/root/lib/lib -L/root/lib/lib" \
 	--disable-posix    \
 	--enable-hash      \
 	--enable-static=yes \
-	--enable-shared=no \
+	--enable-shared=yes \
 	--enable-session   \
 	--enable-filter    \
 	--enable-calendar  \
@@ -423,7 +427,7 @@ RUN source /root/emsdk/emsdk_env.sh && \
 	export JSPI_FLAGS=$(if [ "$WITH_JSPI" = "yes" ]; then echo "-sSUPPORT_LONGJMP=wasm -fwasm-exceptions"; else echo ""; fi) && \
 	EMCC_FLAGS=" -D__x86_64__ -sSIDE_MODULE -Dsetsockopt=wasm_setsockopt -Dphp_exec=wasm_php_exec $JSPI_FLAGS " \
 	# ...which means we must skip all the libraries - they will be provided in the final linking step.
-	EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so /root/lib/lib/libwebp.a /root/lib/lib/libsharpyuv.a /root/lib/lib/libjpeg.a" \
+	EMCC_SKIP="-lrt -ljpeg -lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so /root/lib/lib/libwebp.a /root/lib/lib/libsharpyuv.a /root/lib/lib/libjpeg.a" \
 	emmake make -j1
 
 RUN cp -v /root/php-src/.libs/libphp*.la /root/lib/libphp.la
@@ -506,7 +510,9 @@ RUN if [ "$WITH_WS_NETWORKING_PROXY" = "yes" ]; \
 # are caused by dispatching a PHP request while an execution is paused
 # due to an async call – it means the same PHP files are loaded before
 # the previous request, where they're already loaded, is concluded.
-RUN export ASYNCIFY_IMPORTS=$'["_dlopen_js",\n\
+# TODO: Reconsider this change for _dlopen_js. We are currently marking it as sync, but maybe it will land as async.
+#RUN export ASYNCIFY_IMPORTS=$'["_dlopen_js",\n\
+RUN export ASYNCIFY_IMPORTS=$'[\n\
 "invoke_i",\n\
 "invoke_ii",\n\
 "invoke_iii",\n\
@@ -646,6 +652,12 @@ export ASYNCIFY_ONLY=$'\
 "zif_fwrite",\
 "php_stdiop_write",\
 "zif_array_filter",\
+# TODO: Are these needed?
+# "dlopen",\
+# "zend_load_extension",\
+# "zend_llist_apply",\
+# "php_ini_register_extensions",\
+# "php_load_zend_extension_cb",\
 "zend_call_known_instance_method_with_2_params",\
 "zend_fetch_dimension_address_read_R",\
 "_zval_dtor_func_for_ptr",\
@@ -705,6 +717,7 @@ export ASYNCIFY_ONLY=$'\
 "ZEND_DO_ICALL_SPEC_RETVAL_UNUSED_HANDLER",\
 "ZEND_DO_ICALL_SPEC_RETVAL_USED_HANDLER",\
 "ZEND_DO_UCALL_SPEC_OBSERVER_HANDLER",\
+"ZEND_DO_ICALL_SPEC_OBSERVER_HANDLER",\
 "ZEND_FETCH_OBJ_FUNC_ARG_SPEC_CV_CONST_HANDLER",\
 "ZEND_FETCH_OBJ_R_SPEC_CV_CONST_HANDLER",\
 "ZEND_FETCH_OBJ_R_SPEC_TMPVAR_CONST_HANDLER",\
@@ -1064,8 +1077,11 @@ RUN set -euxo pipefail; \
 	-s WASM_BIGINT=1 \
 	-s INITIAL_MEMORY=1024MB \
 	-s ALLOW_MEMORY_GROWTH=1         \
-	-s ASSERTIONS=0                  \
+	-s ASSERTIONS=1                  \
 	-s ERROR_ON_UNDEFINED_SYMBOLS=1  \
+	-s MAIN_MODULE \
+	# TODO: Remove these after debug
+	-s ASYNCIFY_STACK_SIZE=65536 -s STACK_OVERFLOW_CHECK=2 \
 	-s NODEJS_CATCH_EXIT=0           \
 	-s NODEJS_CATCH_REJECTION=0      \
 	-s INVOKE_RUN=0                  \
@@ -1160,6 +1176,9 @@ RUN set -euxo pipefail; \
 		# wrapper function.
 		/root/replace.sh $'s/ENVIRONMENT_IS_([A-Z]+)\s*=\s*(true|false)/ENVIRONMENT_IS_$1=RuntimeName==="$1"/g' /root/output/php.js; \
 		/root/replace.sh 's/var ENV\s*=\s*\{/var ENV = PHPLoader.ENV || {/g' /root/output/php.js; \
+		# TODO: Remove these before merging if not needed because the dlopen_js is added via library file
+		/root/replace.sh 's/__dlopen_js\./__dlopen_js_unused./g' /root/output/php.js; \
+		/root/replace.sh 's/__dlopen_js\s*=/__dlopen_js_unused =/g' /root/output/php.js; \
 	# Patch Emscripten exit status to include a stack trace
 		# Override Emscripten's default ExitStatus class which gets
 		# thrown on failure. Unfortunately, the default object is not
@@ -1212,3 +1231,44 @@ RUN set -euxo pipefail; \
 			cp -r /root/php-src "/root/output/${PHP_VERSION_ESCAPED}/php-src"; \
 			cp -r /root/emsdk/upstream/emscripten/system "/root/output/${PHP_VERSION_ESCAPED}/php-src/system"; \
 		fi;
+
+RUN set -euxo pipefail; \
+	if [ "$EMSCRIPTEN_ENVIRONMENT" = "node" ]; then \
+		export PHP_VERSION_ESCAPED="${PHP_VERSION//./_}"; \
+		cd /root; \
+		git clone https://github.com/xdebug/xdebug.git xdebug \
+			# TODO: Pick compatible XDebug version based on https://xdebug.org/docs/compat#versions
+			--branch xdebug_3_4 \
+			--single-branch \
+			--depth 1; \
+		cd xdebug; \
+		( \
+			cd /root/php-src; \
+			# Install php build scripts like phpize
+			make install; \
+		); \
+		# Prepare the XDebug module for build
+		phpize . ; \
+		source /root/emsdk/emsdk_env.sh; \
+		# Use non-linux host type or configure will try to require linux kernel
+		# features that are unsupported by emscripten (e.g., rtnetlink.h).
+		emconfigure ./configure --host="i386-unknown-freebsd" --disable-static --enable-shared; \
+		# XDebug linking fails to produce a shared lib because libm is missing.
+		# Let's explicitly skip libm in the understanding that it is provided by Emscripten
+		# with the main module.
+		/root/replace.sh 's/^(XDEBUG_SHARED_LIBADD\s*=.*\s*)-lm\b/$1/' Makefile; \
+		export EMCC_FLAGS="-sSIDE_MODULE -D__x86_64__ -sWASM_BIGINT=1"; \
+		if [ "${WITH_JSPI}" = "yes" ]; then \
+			export EMCC_FLAGS="${EMCC_FLAGS} -sASYNCIFY=2"; \
+		else \
+			export EMCC_FLAGS="${EMCC_FLAGS} -sASYNCIFY=1"; \
+		fi; \
+		if [ "${WITH_DEBUG}" = "yes" ]; then \
+			export EMCC_FLAGS="${EMCC_FLAGS} -O0 -g3"; \
+		else \
+			export EMCC_FLAGS="${EMCC_FLAGS} -O3"; \
+		fi; \
+		EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so /root/lib/lib/libwebp.a /root/lib/lib/libsharpyuv.a /root/lib/lib/libjpeg.a" \
+		emmake make -j1; \
+		cp /root/xdebug/modules/* "/root/output/${PHP_VERSION_ESCAPED}"; \
+	fi;
