@@ -28,7 +28,7 @@ args.unshift('-d', `openssl.cafile=${caBundlePath}`);
 
 async function run() {
 	// @ts-ignore
-	const defaultPhpIniPath = await import('./php.ini');
+	const defaultPhpIniPath = (await import('./php.ini')).default;
 	const phpVersion = (process.env['PHP'] ||
 		LatestSupportedPHPVersion) as SupportedPHPVersion;
 	if (!SupportedPHPVersionsList.includes(phpVersion)) {
