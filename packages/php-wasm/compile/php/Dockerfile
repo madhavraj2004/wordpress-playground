@@ -510,8 +510,6 @@ RUN if [ "$WITH_WS_NETWORKING_PROXY" = "yes" ]; \
 # are caused by dispatching a PHP request while an execution is paused
 # due to an async call – it means the same PHP files are loaded before
 # the previous request, where they're already loaded, is concluded.
-# TODO: Reconsider this change for _dlopen_js. We are currently marking it as sync, but maybe it will land as async.
-#RUN export ASYNCIFY_IMPORTS=$'["_dlopen_js",\n\
 RUN export ASYNCIFY_IMPORTS=$'[\n\
 "invoke_i",\n\
 "invoke_ii",\n\
