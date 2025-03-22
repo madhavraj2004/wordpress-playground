@@ -129,8 +129,7 @@ RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
             cp -r /libs/libzip/1.2.0/* /root/lib; \
 			# https://php-legacy-docs.zend.com/manual/php5/en/zlib.installation
 			echo -n ' --with-zlib --with-zlib-dir=/root/lib --enable-zip --with-libzip=/root/lib ' >> /root/.php-configure-flags; \
-			echo -n ' -I /root/lib -I /root/lib ' >> /root/.emcc-php-wasm-flags; \
-			echo -n ' /root/lib/lib/libzip.a /root/lib/lib/libz.a' >> /root/.emcc-php-wasm-sources; \
+			echo -n ' -I /root/lib -lzip -lz' >> /root/.emcc-php-wasm-flags; \
 			cp /root/lib/lib/libzip/include/zipconf.h /root/lib/lib; \
 			cp /root/lib/lib/libzip/include/zipconf.h /root/lib/include; \
 			echo '#define LIBZIP_VERSION "1.2.0"' >> /root/lib/include/zipconf.h; \
@@ -139,8 +138,7 @@ RUN if [ "$WITH_LIBZIP" = "yes" ]; then \
             cp -r /libs/libzip/1.9.2/* /root/lib; \
 			# https://www.php.net/manual/en/zlib.installation.php
 			echo -n ' --with-zlib --with-zlib-dir=/root/lib --with-zip' >> /root/.php-configure-flags; \
-			echo -n ' -I /root/lib -I /root/lib' >> /root/.emcc-php-wasm-flags; \
-			echo -n ' /root/lib/lib/libzip.a /root/lib/lib/libz.a' >> /root/.emcc-php-wasm-sources; \
+			echo -n ' -I /root/lib -lzip -lz' >> /root/.emcc-php-wasm-flags; \
 		fi && \
 		/root/replace.sh 's/pharcmd=pharcmd/pharcmd=/g' /root/php-src/configure && \
 		/root/replace.sh 's/pharcmd_install=install-pharcmd/pharcmd_install=/g' /root/php-src/configure; \
@@ -169,7 +167,6 @@ RUN if [ "$WITH_LIBXML" = "yes" ]; \
 		set -euxo pipefail;\
 		echo -n ' --enable-libxml --with-libxml --with-libxml-dir=/root/lib --enable-dom --enable-xml --enable-simplexml --enable-xmlreader --enable-xmlwriter' >> /root/.php-configure-flags && \
 		echo -n ' -I /root/lib -I /root/lib/include/libxml2 -lxml2' >> /root/.emcc-php-wasm-flags && \
-		echo -n ' /root/lib/lib/libxml2.a' >> /root/.emcc-php-wasm-sources && \
 		# Libxml check is wrong in PHP < 7.4.0.
 		# In the regular cc it's just a warning, but in the emscripten's emcc that's an error:
 		perl -pi.bak -e 's/char xmlInitParser/void xmlInitParser/g' /root/php-src/configure; \
@@ -185,8 +182,7 @@ RUN if [ "$WITH_LIBXML" = "yes" ]; \
 RUN if [ "$WITH_SQLITE" = "yes" ]; \
 	then \
 		echo -n ' --with-sqlite3 --enable-pdo --with-pdo-sqlite=/root/lib ' >> /root/.php-configure-flags && \
-		echo -n ' -I ext/pdo_sqlite ' >> /root/.emcc-php-wasm-flags; \
-		echo -n ' -lsqlite3 ' >> /root/.emcc-php-wasm-flags; \
+		echo -n ' -I ext/pdo_sqlite -lsqlite3' >> /root/.emcc-php-wasm-flags; \
 	fi;
 
 # Add GD if needed
@@ -198,7 +194,7 @@ RUN if [ "$WITH_GD" = "yes" ]; \
 		else \
 			echo -n ' --with-png-dir=/root/lib --with-jpeg --with-webp --with-gd --enable-gd ' >> /root/.php-configure-flags; \
 		fi; \
-		echo -n ' -I /root/lib -I /root/install -lz -lpng16 -lwebp -lsharpyuv -ljpeg ' >> /root/.emcc-php-wasm-flags; \
+		echo -n ' -I /root/lib -I /root/install -lz -lpng -lwebp -lsharpyuv -ljpeg' >> /root/.emcc-php-wasm-flags; \
 	fi;
 
 # Add openssl if needed
@@ -209,8 +205,8 @@ RUN if [ "$WITH_OPENSSL" = "yes" ]; \
 		else \
 			cp -r /libs/libopenssl/1.1.1/* /root/lib; \
 		fi; \
-		echo -n ' --with-openssl --with-openssl-dir=/root/lib ' >> /root/.php-configure-flags; \
-		echo -n ' -lssl -lcrypto ' >> /root/.emcc-php-wasm-flags; \
+		echo -n ' --with-openssl --with-openssl-dir=/root/lib' >> /root/.php-configure-flags; \
+		echo -n ' -I /root/lib -I /root/install -lssl -lcrypto' >> /root/.emcc-php-wasm-flags; \
 	fi;
 
 # Remove fileinfo if needed
@@ -225,8 +221,8 @@ RUN if [ "$WITH_FILEINFO" = "yes" ]; \
 # Add iconv if needed
 RUN if [ "$WITH_ICONV" = "yes" ]; \
 	then \
-		echo -n ' --with-iconv=/root/lib ' >> /root/.php-configure-flags; \
-		echo -n ' /root/lib/lib/libiconv.a ' >> /root/.emcc-php-wasm-sources; \
+		echo -n ' --with-iconv=/root/lib' >> /root/.php-configure-flags; \
+		echo -n ' -I /root/lib -I /root/install -liconv' >> /root/.emcc-php-wasm-flags; \
 		# PHP >= 8.0 posix is no longer supported.
 		# PHP ≤= 7.4 posix is supported.
 	else \
@@ -240,8 +236,8 @@ RUN if [ "$WITH_CURL" = "yes" ]; \
 		# the version is correct. Let's make the check always pass.
 		/root/replace.sh 's/\$PKG_CONFIG --atleast-version 7.\d+.\d+ \$PKNAME/test "1" = "1"/g' /root/php-src/configure; \
 		/root/replace.sh 's/test "\$curl_version" -ge 7010005/test "1" = "1"/g' /root/php-src/configure; \
-		echo -n ' --with-curl=/root/lib ' >> /root/.php-configure-flags; \
-		echo -n ' /root/lib/lib/libcurl.a ' >> /root/.emcc-php-wasm-sources; \
+		echo -n ' --with-curl=/root/lib' >> /root/.php-configure-flags; \
+		echo -n ' -I /root/lib -I /root/install -lcurl' >> /root/.emcc-php-wasm-flags; \
 		# The way we build libcurl doesn't produce a `.pc` file that seems
 		# to be required by PHP <= 7.3. Let's create  manually.
 		echo 'prefix=/root/lib \
@@ -281,8 +277,8 @@ RUN if [ "$WITH_MBREGEX" = "yes" ] && [ "${PHP_VERSION:0:3}" != "7.0" ]; \
 		# PHP >= 8.0 and 7.4 use the system oniguruma library.
 		# PHP < 7.4 ship their own oniguruma library.
 		if [[ "${PHP_VERSION:0:1}" -ge "8" ]] || [ "${PHP_VERSION:0:3}" = "7.4" ]; then \
-			echo -n ' --with-onig=/root/lib ' >> /root/.php-configure-flags; \
-			echo -n ' /root/lib/lib/libonig.a ' >> /root/.emcc-php-wasm-sources; \
+			echo -n ' --with-onig=/root/lib' >> /root/.php-configure-flags; \
+			echo -n ' -I /root/lib -I /root/install -lonig' >> /root/.emcc-php-wasm-flags; \
 		fi; \
 	else \
 		echo -n ' --disable-mbregex ' >> /root/.php-configure-flags; \
