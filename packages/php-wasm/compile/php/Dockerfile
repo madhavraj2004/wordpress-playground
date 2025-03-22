@@ -194,7 +194,7 @@ RUN if [ "$WITH_GD" = "yes" ]; \
 		else \
 			echo -n ' --with-png-dir=/root/lib --with-jpeg --with-webp --with-gd --enable-gd ' >> /root/.php-configure-flags; \
 		fi; \
-		echo -n ' -I /root/lib -I /root/install -lz -lpng -lwebp -lsharpyuv -ljpeg' >> /root/.emcc-php-wasm-flags; \
+		echo -n ' -I /root/lib -I /root/install -lz -lpng16 -lwebp -lsharpyuv -ljpeg' >> /root/.emcc-php-wasm-flags; \
 	fi;
 
 # Add openssl if needed
