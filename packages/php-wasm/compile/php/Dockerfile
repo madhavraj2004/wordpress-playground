@@ -182,7 +182,10 @@ RUN if [ "$WITH_LIBXML" = "yes" ]; \
 RUN if [ "$WITH_SQLITE" = "yes" ]; \
 	then \
 		echo -n ' --with-sqlite3 --enable-pdo --with-pdo-sqlite=/root/lib ' >> /root/.php-configure-flags && \
-		echo -n ' -I ext/pdo_sqlite -lsqlite3' >> /root/.emcc-php-wasm-flags; \
+		if [[ "${PHP_VERSION:0:1}" -ge 8 ]] || [ "${PHP_VERSION:0:3}" == "7.4" ]; then \
+			# PHP bundled its own sqlite3 library in PHP 7.4 and later.
+			echo -n ' -I ext/pdo_sqlite -lsqlite3' >> /root/.emcc-php-wasm-flags; \
+		fi; \
 	fi;
 
 # Add GD if needed
