@@ -7,6 +7,7 @@
 
 // Section IDs
 #define IMPORT_SECTION 2
+#define EXPORT_SECTION 7
 
 typedef struct {
     uint32_t magic;
@@ -44,9 +45,7 @@ char* read_string(FILE *fp) {
 
 void parse_imports(FILE *fp) {
     uint32_t count = read_leb128(fp);
-    printf("{\n");
-    printf("  \"importCount\": %d,\n", count);
-    printf("  \"imports\": [\n");
+    printf("[\n");
     
     for (uint32_t i = 0; i < count; i++) {
         char *module = read_string(fp);
@@ -113,8 +112,41 @@ void parse_imports(FILE *fp) {
         }
     }
     
-    printf("  ]\n");
-    printf("}\n");
+    printf("  ]");
+}
+
+void parse_exports(FILE *fp) {
+	printf("[\n");
+	
+	// Read number of exports
+	uint32_t count = read_leb128(fp);
+	
+	for (uint32_t i = 0; i < count; i++) {
+		// Read export name
+		uint32_t name_len = read_leb128(fp);
+		char* name = malloc(name_len + 1);
+		fread(name, 1, name_len, fp);
+		name[name_len] = '\0';
+		
+		// Read export kind and index
+		uint8_t kind = fgetc(fp);
+		uint32_t index = read_leb128(fp);
+		
+		printf("    {\n");
+		printf("      \"name\": \"%s\",\n", name);
+		printf("      \"kind\": %d,\n", kind);
+		printf("      \"index\": %d\n", index);
+		
+		if (i < count - 1) {
+			printf("    },\n");
+		} else {
+			printf("    }\n");
+		}
+		
+		free(name);
+	}
+	
+	printf("  ]");
 }
 
 int main(int argc, char *argv[]) {
@@ -138,9 +170,14 @@ int main(int argc, char *argv[]) {
         fclose(fp);
         return 1;
     }
+
+    printf("{\n");
+
+    // Find imports and exports sections
+    int found_imports = 0;
+    int found_exports = 0;
     
-    // Find imports section
-    while (!feof(fp)) {
+    while (!feof(fp) && (!found_imports || !found_exports)) {
         section_header_t section;
         section.id = fgetc(fp);
         if (feof(fp)) break;
@@ -148,13 +185,35 @@ int main(int argc, char *argv[]) {
         section.size = read_leb128(fp);
         
         if (section.id == IMPORT_SECTION) {
+            printf("  \"imports\": ");
             parse_imports(fp);
-            break;
+            found_imports = 1;
+            if (!found_exports) {
+                printf(",");
+            }
+            printf("\n");
+        } else if (section.id == EXPORT_SECTION) {
+            printf("  \"exports\": ");
+            parse_exports(fp);
+            found_exports = 1;
+            if (!found_imports) {
+                printf(",");
+            }
+            printf("\n");
         } else {
             // Skip other sections
             fseek(fp, section.size, SEEK_CUR);
         }
     }
+
+    if (!found_imports) {
+        printf("  \"imports\": []\n");
+    }
+    if (!found_exports) {
+        printf("  \"exports\": []\n");
+    }
+
+    printf("}\n");
     
     fclose(fp);
     return 0;
