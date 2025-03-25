@@ -44,48 +44,77 @@ char* read_string(FILE *fp) {
 
 void parse_imports(FILE *fp) {
     uint32_t count = read_leb128(fp);
-    printf("Number of imports: %d\n", count);
+    printf("{\n");
+    printf("  \"importCount\": %d,\n", count);
+    printf("  \"imports\": [\n");
     
     for (uint32_t i = 0; i < count; i++) {
         char *module = read_string(fp);
         char *name = read_string(fp);
         uint8_t kind = fgetc(fp);
         
-        printf("Import %d:\n", i);
-        printf("  Module: %s\n", module);
-        printf("  Name: %s\n", name);
-        printf("  Kind: 0x%02x\n", kind);
-        
-        free(module);
-        free(name);
+        printf("    {\n");
+        printf("      \"module\": \"%s\",\n", module);
+        printf("      \"name\": \"%s\",\n", name);
+        printf("      \"kind\": \"0x%02x\",\n", kind);
         
         // Parse import type based on kind
         switch(kind) {
             case 0x00: // Function
-                printf("  Type: Function index %d\n", read_leb128(fp));
+                printf("      \"type\": \"function\",\n");
+                printf("      \"typeIndex\": %d\n", read_leb128(fp));
                 break;
-            case 0x01: // Table
-                printf("  Type: Table\n");
-                // Skip table type
-                fgetc(fp); // element type
+            case 0x01: { // Table
+                printf("      \"type\": \"table\",\n");
+                // Skip table type but include in JSON
+                uint8_t elemType = fgetc(fp);
                 uint8_t flags = fgetc(fp);
-                read_leb128(fp); // initial size
-                if (flags & 0x01) read_leb128(fp); // max size
+                uint32_t initial = read_leb128(fp);
+                printf("      \"elementType\": \"0x%02x\",\n", elemType);
+                printf("      \"initial\": %d", initial);
+                if (flags & 0x01) {
+                    uint32_t max = read_leb128(fp);
+                    printf(",\n      \"maximum\": %d\n", max);
+                } else {
+                    printf("\n");
+                }
                 break;
-            case 0x02: // Memory
-                printf("  Type: Memory\n");
-                // Skip memory type
-                uint8_t mem_flags = fgetc(fp);
-                read_leb128(fp); // initial size
-                if (mem_flags & 0x01) read_leb128(fp); // max size
+            }
+            case 0x02: { // Memory
+                printf("      \"type\": \"memory\",\n");
+                uint8_t flags = fgetc(fp);
+                uint32_t initial = read_leb128(fp);
+                printf("      \"initial\": %d", initial);
+                if (flags & 0x01) {
+                    uint32_t max = read_leb128(fp);
+                    printf(",\n      \"maximum\": %d\n", max);
+                } else {
+                    printf("\n");
+                }
                 break;
-            case 0x03: // Global
-                printf("  Type: Global\n");
-                fgetc(fp); // value type
-                fgetc(fp); // mutability
+            }
+            case 0x03: { // Global
+                printf("      \"type\": \"global\",\n");
+                uint8_t valueType = fgetc(fp);
+                uint8_t mutability = fgetc(fp);
+                printf("      \"valueType\": \"0x%02x\",\n", valueType);
+                printf("      \"mutable\": %s\n", mutability ? "true" : "false");
                 break;
+            }
+        }
+
+        free(module);
+        free(name);
+        
+        if (i < count - 1) {
+            printf("    },\n");
+        } else {
+            printf("    }\n");
         }
     }
+    
+    printf("  ]\n");
+    printf("}\n");
 }
 
 int main(int argc, char *argv[]) {
