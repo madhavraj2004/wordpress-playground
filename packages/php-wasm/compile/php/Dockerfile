@@ -1227,12 +1227,20 @@ RUN set -euxo pipefail; \
 		fi;
 
 RUN set -euxo pipefail; \
-	if [ "$EMSCRIPTEN_ENVIRONMENT" = "node" ]; then \
+	if ( \
+		[ "$EMSCRIPTEN_ENVIRONMENT" = "node" ] && \
+		# TODO: Fix XDebug build and runtime problems with PHP 7.2 and 7.3 or drop support.
+		([[ "${PHP_VERSION:0:1}" -ge 8 ]] || [[ "${PHP_VERSION:0:3}" == "7.4" ]]) \
+	); then \
 		export PHP_VERSION_ESCAPED="${PHP_VERSION//./_}"; \
+		if [[ "${PHP_VERSION:0:1}" -ge 8 ]]; then \
+			export XDEBUG_BRANCH="xdebug_3_4"; \
+		else \
+			export XDEBUG_BRANCH="xdebug_3_1"; \
+		fi; \
 		cd /root; \
 		git clone https://github.com/xdebug/xdebug.git xdebug \
-			# TODO: Pick compatible XDebug version based on https://xdebug.org/docs/compat#versions
-			--branch xdebug_3_4 \
+			--branch "${XDEBUG_BRANCH}" \
 			--single-branch \
 			--depth 1; \
 		cd xdebug; \
