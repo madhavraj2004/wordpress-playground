@@ -207,6 +207,14 @@ bison2.7/dist/usr/local/bison/bin/bison: base-image
 	docker build -f ./bison2.7/Dockerfile -t playground-php-wasm:bison2.7 . --progress=plain
 	docker cp $$(docker create playground-php-wasm:bison2.7):/usr/local/bison ./bison2.7/dist/usr/local
 
+## TODO: Remove unrelated files or find a way to install in a subdirectory
+imagick: imagick/dist/usr/local/lib/imagick/bin/imagick
+imagick/dist/usr/local/lib/imagick/bin/imagick: base-image
+	mkdir -p ./imagick/dist/usr/local/lib/imagick
+	docker build -f ./imagick/Dockerfile -t playground-php-wasm:imagick . --progress=plain
+	docker cp $$(docker create playground-php-wasm:imagick):/usr/local/lib ./imagick/dist/usr/local/lib/imagick
+
+
 oniguruma_asyncify: oniguruma/asyncify/dist/root/lib/lib/libonig.a
 oniguruma/asyncify/dist/root/lib/lib/libonig.a: base-image
 	mkdir -p ./oniguruma/asyncify/dist/root/lib
