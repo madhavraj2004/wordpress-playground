@@ -241,6 +241,7 @@ export class PlaygroundWorkerEndpoint extends PHPWorker {
 			const knownRemoteAssetPaths = new Set<string>();
 			const phpIniEntries: Record<string, string> = {
 				'openssl.cafile': '/internal/shared/ca-bundle.crt',
+				'extension': 'imagick',
 			};
 			let CAroot: false | GeneratedCertificate = false;
 			let tcpOverFetch: TCPOverFetchOptions | undefined = undefined;
