@@ -64,12 +64,6 @@ else \
 	cp -r /root/builds-libopenssl/asyncify/dist/1.1.1/root/lib /libs/libopenssl/1.1.1; \
 fi
 
-ARG WITH_IMAGICK="yes"
-
-RUN if [ "$WITH_IMAGICK" = "yes" ]; then \
-	cp -r /root/builds/imagick/dist/ext/imagick.so /root/php-src/ext/imagick.so; \
-fi
-
 # Build PHP
 
 # The PHP extensions to build:
@@ -1279,4 +1273,7 @@ RUN set -euxo pipefail; \
 		EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so /root/lib/lib/libwebp.a /root/lib/lib/libsharpyuv.a /root/lib/lib/libjpeg.a" \
 		emmake make -j1; \
 		cp /root/xdebug/modules/* "/root/output/${PHP_VERSION_ESCAPED}"; \
+
+		# Copy the imagick extension
+		cp /root/builds/imagick/dist/ext/imagick.so "/root/output/${PHP_VERSION_ESCAPED}"; \
 	fi;
