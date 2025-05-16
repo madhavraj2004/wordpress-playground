@@ -37,7 +37,7 @@ COPY ./libsqlite3/ /root/builds/libsqlite3
 COPY ./libxml2/ /root/builds/libxml2
 COPY ./libz/ /root/builds/libz
 COPY ./oniguruma/ /root/builds/oniguruma
-
+COPY ./imagick/ /root/builds/imagick
 RUN if [ "$WITH_JSPI" = "yes" ]; then \
 	cp -r /root/builds/*/jspi/dist/root/lib/* /root/lib; \
 else \
@@ -62,6 +62,12 @@ RUN if [ "$WITH_JSPI" = "yes" ]; then \
 else \
 	cp -r /root/builds-libopenssl/asyncify/dist/1.1.0h/root/lib /libs/libopenssl/1.1.0h; \
 	cp -r /root/builds-libopenssl/asyncify/dist/1.1.1/root/lib /libs/libopenssl/1.1.1; \
+fi
+
+ARG WITH_IMAGICK="yes"
+
+RUN if [ "$WITH_IMAGICK" = "yes" ]; then \
+	cp -r /root/builds/imagick/dist/ext/imagick.so /root/php-src/ext/imagick.so; \
 fi
 
 # Build PHP

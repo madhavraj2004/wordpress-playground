@@ -1,6 +1,6 @@
 const dependencyFilename = __dirname + '/8_3_0/php_8_3.wasm';
 export { dependencyFilename };
-export const dependenciesTotalSize = 27922247;
+export const dependenciesTotalSize = 27948186;
 export function init(RuntimeName, PHPLoader) {
 	// The rest of the code comes from the built php.js file and esm-suffix.js
 	// include: shell.js
@@ -1048,13 +1048,13 @@ export function init(RuntimeName, PHPLoader) {
 	// === Body ===
 
 	var ASM_CONSTS = {
-		12536813: ($0) => {
+		12537837: ($0) => {
 			if (!$0) {
 				AL.alcErr = 0xa004;
 				return 1;
 			}
 		},
-		12536861: ($0) => {
+		12537885: ($0) => {
 			if (!AL.currentCtx) {
 				err('alGetProcAddress() called without a valid context');
 				return 1;
@@ -1616,7 +1616,7 @@ export function init(RuntimeName, PHPLoader) {
 		},
 	};
 
-	var ___heap_base = 12790048;
+	var ___heap_base = 12791072;
 
 	var alignMemory = (size, alignment) => {
 		assert(alignment, 'alignment argument is required');
@@ -1791,7 +1791,7 @@ export function init(RuntimeName, PHPLoader) {
 
 	/** @type {WebAssembly.Table} */
 	var wasmTable = new WebAssembly.Table({
-		initial: 11180,
+		initial: 11192,
 		element: 'anyfunc',
 	});
 	var getWasmTableEntry = (funcPtr) => {
@@ -2686,13 +2686,13 @@ export function init(RuntimeName, PHPLoader) {
 		1024
 	);
 
-	var ___stack_high = 12790048;
+	var ___stack_high = 12791072;
 
-	var ___stack_low = 12724512;
+	var ___stack_low = 12725536;
 
 	var ___stack_pointer = new WebAssembly.Global(
 		{ value: 'i32', mutable: true },
-		12790048
+		12791072
 	);
 
 	var PATH = {
@@ -34961,21 +34961,10 @@ export function init(RuntimeName, PHPLoader) {
 		}
 	}
 
-	function invoke_iiii(index, a1, a2, a3) {
+	function invoke_iiiiii(index, a1, a2, a3, a4, a5) {
 		var sp = stackSave();
 		try {
-			return Module['dynCall_iiii'](index, a1, a2, a3);
-		} catch (e) {
-			stackRestore(sp);
-			if (e !== e + 0) throw e;
-			_setThrew(1, 0);
-		}
-	}
-
-	function invoke_iiiii(index, a1, a2, a3, a4) {
-		var sp = stackSave();
-		try {
-			return Module['dynCall_iiiii'](index, a1, a2, a3, a4);
+			return Module['dynCall_iiiiii'](index, a1, a2, a3, a4, a5);
 		} catch (e) {
 			stackRestore(sp);
 			if (e !== e + 0) throw e;
@@ -34987,6 +34976,40 @@ export function init(RuntimeName, PHPLoader) {
 		var sp = stackSave();
 		try {
 			Module['dynCall_viii'](index, a1, a2, a3);
+		} catch (e) {
+			stackRestore(sp);
+			if (e !== e + 0) throw e;
+			_setThrew(1, 0);
+		}
+	}
+
+	function invoke_iiii(index, a1, a2, a3) {
+		var sp = stackSave();
+		try {
+			return Module['dynCall_iiii'](index, a1, a2, a3);
+		} catch (e) {
+			stackRestore(sp);
+			if (e !== e + 0) throw e;
+			_setThrew(1, 0);
+		}
+	}
+
+	function invoke_jii(index, a1, a2) {
+		var sp = stackSave();
+		try {
+			return Module['dynCall_jii'](index, a1, a2);
+		} catch (e) {
+			stackRestore(sp);
+			if (e !== e + 0) throw e;
+			_setThrew(1, 0);
+			return 0n;
+		}
+	}
+
+	function invoke_iiiii(index, a1, a2, a3, a4) {
+		var sp = stackSave();
+		try {
+			return Module['dynCall_iiiii'](index, a1, a2, a3, a4);
 		} catch (e) {
 			stackRestore(sp);
 			if (e !== e + 0) throw e;
@@ -35009,17 +35032,6 @@ export function init(RuntimeName, PHPLoader) {
 				a8,
 				a9
 			);
-		} catch (e) {
-			stackRestore(sp);
-			if (e !== e + 0) throw e;
-			_setThrew(1, 0);
-		}
-	}
-
-	function invoke_iiiiii(index, a1, a2, a3, a4, a5) {
-		var sp = stackSave();
-		try {
-			return Module['dynCall_iiiiii'](index, a1, a2, a3, a4, a5);
 		} catch (e) {
 			stackRestore(sp);
 			if (e !== e + 0) throw e;
@@ -35194,18 +35206,6 @@ export function init(RuntimeName, PHPLoader) {
 		var sp = stackSave();
 		try {
 			return Module['dynCall_jiii'](index, a1, a2, a3);
-		} catch (e) {
-			stackRestore(sp);
-			if (e !== e + 0) throw e;
-			_setThrew(1, 0);
-			return 0n;
-		}
-	}
-
-	function invoke_jii(index, a1, a2) {
-		var sp = stackSave();
-		try {
-			return Module['dynCall_jii'](index, a1, a2);
 		} catch (e) {
 			stackRestore(sp);
 			if (e !== e + 0) throw e;
@@ -35597,7 +35597,7 @@ export function init(RuntimeName, PHPLoader) {
 		// This is normally called automatically during __wasm_call_ctors but need to
 		// get these values before even running any of the ctors so we call it redundantly
 		// here.
-		_emscripten_stack_set_limits(12790048, 12724512);
+		_emscripten_stack_set_limits(12791072, 12725536);
 		// TODO(sbc): Move writeStackCookie to native to to avoid this.
 		writeStackCookie();
 	}
