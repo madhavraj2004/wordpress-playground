@@ -9,7 +9,7 @@ import { loadNodeRuntime } from '../lib';
 describe('imagick', () => {
 	let php: PHP;
 	beforeEach(async () => {
-		php = new PHP(await loadNodeRuntime(LatestSupportedPHPVersion));
+		php = new PHP(await loadNodeRuntime('8.3'));
 		setPhpIniEntries(php, {
 			extension: 'imagick',
 		});
