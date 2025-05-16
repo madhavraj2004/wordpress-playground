@@ -1,6 +1,6 @@
 const dependencyFilename = __dirname + '/8_3_0/php_8_3.wasm';
 export { dependencyFilename };
-export const dependenciesTotalSize = 26022096;
+export const dependenciesTotalSize = 26047506;
 export function init(RuntimeName, PHPLoader) {
 	// The rest of the code comes from the built php.js file and esm-suffix.js
 	// include: shell.js
@@ -1054,13 +1054,13 @@ export function init(RuntimeName, PHPLoader) {
 	// === Body ===
 
 	var ASM_CONSTS = {
-		12537804: ($0) => {
+		12538828: ($0) => {
 			if (!$0) {
 				AL.alcErr = 0xa004;
 				return 1;
 			}
 		},
-		12537852: ($0) => {
+		12538876: ($0) => {
 			if (!AL.currentCtx) {
 				err('alGetProcAddress() called without a valid context');
 				return 1;
@@ -1635,7 +1635,7 @@ export function init(RuntimeName, PHPLoader) {
 		},
 	};
 
-	var ___heap_base = 12791616;
+	var ___heap_base = 12792640;
 
 	var alignMemory = (size, alignment) => {
 		assert(alignment, 'alignment argument is required');
@@ -1810,7 +1810,7 @@ export function init(RuntimeName, PHPLoader) {
 
 	/** @type {WebAssembly.Table} */
 	var wasmTable = new WebAssembly.Table({
-		initial: 10843,
+		initial: 10855,
 		element: 'anyfunc',
 	});
 	var getWasmTableEntry = (funcPtr) => {
@@ -2630,13 +2630,13 @@ export function init(RuntimeName, PHPLoader) {
 		1024
 	);
 
-	var ___stack_high = 12791616;
+	var ___stack_high = 12792640;
 
-	var ___stack_low = 12726080;
+	var ___stack_low = 12727104;
 
 	var ___stack_pointer = new WebAssembly.Global(
 		{ value: 'i32', mutable: true },
-		12791616
+		12792640
 	);
 
 	var PATH = {
@@ -34631,7 +34631,7 @@ export function init(RuntimeName, PHPLoader) {
 		// This is normally called automatically during __wasm_call_ctors but need to
 		// get these values before even running any of the ctors so we call it redundantly
 		// here.
-		_emscripten_stack_set_limits(12791616, 12726080);
+		_emscripten_stack_set_limits(12792640, 12727104);
 		// TODO(sbc): Move writeStackCookie to native to to avoid this.
 		writeStackCookie();
 	}

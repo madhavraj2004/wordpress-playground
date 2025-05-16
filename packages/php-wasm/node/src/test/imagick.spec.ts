@@ -5,13 +5,21 @@ import {
 	setPhpIniEntries,
 } from '@php-wasm/universal';
 import { loadNodeRuntime } from '../lib';
+import { readFileSync } from 'fs';
 
 describe('imagick', () => {
 	let php: PHP;
 	beforeEach(async () => {
 		php = new PHP(await loadNodeRuntime('8.3'));
+
+		const data = readFileSync( './jspi/8_3_0/imagick.so' );
+
+		php.mkdir( '/extensions' );
+
+		php.writeFile( '/extensions/imagick.so', new Uint8Array( data ) );
 		setPhpIniEntries(php, {
-			extension: 'imagick',
+			'html_errors' : 'Off',
+			'extension' : 'imagick',
 		});
 	});
 
