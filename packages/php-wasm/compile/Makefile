@@ -209,12 +209,13 @@ bison2.7/dist/usr/local/bison/bin/bison: base-image
 
 ## TODO: Remove unrelated files or find a way to install in a subdirectory
 ## TEMP: Copy configure script to lib directory
-imagick: imagick/dist/usr/local/lib/imagick/bin/imagick
-imagick/dist/usr/local/lib/imagick/bin/imagick: base-image
+imagick: imagick/dist/usr/local/lib/imagick
+imagick/dist/usr/local/lib/imagick: base-image
 	mkdir -p ./imagick/dist/usr/local/lib/imagick
+	mkdir -p ./imagick/dist/ext
 	docker build -f ./imagick/Dockerfile -t playground-php-wasm:imagick . --progress=plain
 	docker cp $$(docker create playground-php-wasm:imagick):/usr/local/lib ./imagick/dist/usr/local/lib/imagick
-	docker cp $$(docker create playground-php-wasm:imagick):/root/magick-master/configure ./imagick
+	docker cp $$(docker create playground-php-wasm:imagick):/root/imagick-master/modules/imagick.so ./imagick/dist/ext/imagick.so
 
 
 oniguruma_asyncify: oniguruma/asyncify/dist/root/lib/lib/libonig.a
