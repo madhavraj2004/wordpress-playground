@@ -213,7 +213,7 @@ imagick: imagick/dist/usr/local/lib/imagick
 imagick/dist/usr/local/lib/imagick: base-image
 	mkdir -p ./imagick/dist/usr/local/lib/imagick
 	mkdir -p ./imagick/dist/ext
-	docker build -f ./imagick/Dockerfile -t playground-php-wasm:imagick . --progress=plain
+	docker build -f ./imagick/Dockerfile -t playground-php-wasm:imagick . --progress=plain --no-cache
 	docker cp $$(docker create playground-php-wasm:imagick):/usr/local/lib ./imagick/dist/usr/local/lib/imagick
 	docker cp $$(docker create playground-php-wasm:imagick):/root/imagick-master/modules/imagick.so ./imagick/dist/ext/imagick.so
 

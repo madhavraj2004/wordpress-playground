@@ -16,10 +16,10 @@ describe('imagick', () => {
 
 		php.mkdir( '/extensions' );
 
-		php.writeFile( '/extensions/imagick.so', new Uint8Array( data ) );
+		await php.writeFile( '/extensions/imagick.so', new Uint8Array( data ) );
 		setPhpIniEntries(php, {
 			'html_errors' : 'Off',
-			'extension' : 'imagick',
+			'extension' : '/extensions/imagick.so',
 		});
 	});
 
