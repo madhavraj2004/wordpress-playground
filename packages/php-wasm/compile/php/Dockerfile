@@ -1273,7 +1273,21 @@ RUN set -euxo pipefail; \
 		EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so /root/lib/lib/libwebp.a /root/lib/lib/libsharpyuv.a /root/lib/lib/libjpeg.a" \
 		emmake make -j1; \
 		cp /root/xdebug/modules/* "/root/output/${PHP_VERSION_ESCAPED}"; \
-
+		# Copy ImageMagick library
+		# TODO: Copy only needed files
+		cp -R /root/builds/imagick/dist/usr/local/* /usr/local; \
 		# Copy the imagick extension
-		cp /root/builds/imagick/dist/ext/imagick.so "/root/output/${PHP_VERSION_ESCAPED}"; \
+		wget https://github.com/Imagick/imagick/archive/refs/heads/master.zip && \
+			unzip master.zip && \
+			rm master.zip && \
+			cd imagick-master && \
+			phpize . ; \
+			source /root/emsdk/emsdk_env.sh; \
+			emconfigure ./configure --host="i386-unknown-freebsd" --disable-static --enable-shared; \
+			# TODO: Understand why some files need ot be removed before building
+			EMCC_SKIP="/usr/local/lib/libMagickCore-7.Q16HDRI.so /usr/local/lib/libMagickWand-7.Q16HDRI.so" \
+				emmake make -j1; \
+			ls -la .; \
+			ls -la ./modules; \
+			cp ./modules/imagick.so "/root/output/${PHP_VERSION_ESCAPED}"; \
 	fi;
