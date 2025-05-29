@@ -1,7 +1,7 @@
 FROM playground-php-wasm:base
 
-# TODO: Remove, probably not needed
-RUN apt-get update && apt-get install -y build-essential libc6-dev
+# Temporary install vim
+RUN apt-get update && apt-get install -y vim
 
 RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz; \
     tar -xvf ImageMagick.tar.gz; \
@@ -18,8 +18,10 @@ RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz; \
         emconfigure ./configure \
             # Disable X11 support
             --without-x \
+            ## Disable libm
             --disable-openmp \
             --without-threads \
+            ## Build shared library
             --host="i386-unknown-freebsd" \
             --disable-static \
             --enable-shared; \
@@ -34,8 +36,11 @@ RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz; \
     else \
         export EMCC_FLAGS="${EMCC_FLAGS} -O3"; \
     fi; \
-    # Don't remove -lm, it's needed by ImageMagick
-    EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so /root/lib/lib/libwebp.a /root/lib/lib/libsharpyuv.a /root/lib/lib/libjpeg.a" \
+    # Remove -lm from the Makefile
+    /root/replace.sh 's/^(MATH_LIBS\s*=).*$/$1/' Makefile; \
+    /root/replace.sh 's/^(MAGICK_LIBS\s*=).*$/$1/' Makefile; \
+    /root/replace.sh 's/^(MAGICK_DEP_LIBS\s*=).*$/$1/' Makefile; \
+    EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so /root/lib/lib/libwebp.a /root/lib/lib/libsharpyuv.a /root/lib/lib/libjpeg.a" \
         emmake make -j1; \
     emmake make install
 RUN ls -la /usr/local/lib/;
