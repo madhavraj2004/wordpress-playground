@@ -212,7 +212,7 @@ bison2.7/dist/usr/local/bison/bin/bison: base-image
 imagick: imagick/dist/usr/local/lib/imagick
 imagick/dist/usr/local/lib/imagick: base-image
 	mkdir -p ./imagick/dist/usr/local
-	docker build -f ./imagick/Dockerfile -t playground-php-wasm:imagick . --progress=plain
+	docker build -f ./imagick/Dockerfile -t playground-php-wasm:imagick . --progress=plain --no-cache
 	docker cp -L $$(docker create playground-php-wasm:imagick):/usr/local ./imagick/dist/usr
 	docker cp -L $$(docker create playground-php-wasm:imagick):/usr/local ./imagick/dist/usr
 

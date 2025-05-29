@@ -1273,21 +1273,39 @@ RUN set -euxo pipefail; \
 		EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so /root/lib/lib/libwebp.a /root/lib/lib/libsharpyuv.a /root/lib/lib/libjpeg.a" \
 		emmake make -j1; \
 		cp /root/xdebug/modules/* "/root/output/${PHP_VERSION_ESCAPED}"; \
-		# Copy ImageMagick library
-		# TODO: Copy only needed files
-		cp -R /root/builds/imagick/dist/usr/local/* /usr/local; \
+		# Build ImageMagick library
+		cd /root/ ; \
+		wget https://imagemagick.org/archive/ImageMagick.tar.gz; \
+			tar -xvf ImageMagick.tar.gz; \
+			rm ImageMagick.tar.gz; \
+			cd ImageMagick-*; \
+			source /root/emsdk/emsdk_env.sh; \
+			ac_cv_func_vfprintf_l=no \
+			ac_cv_func_vsnprintf_l=no \
+			ac_cv_func_getexecname=no \
+			ac_cv_func__NSGetExecutablePath=no \
+			ac_cv_func_getdtablesize=no \
+				emconfigure ./configure \
+					--without-x \
+					--host="i386-unknown-freebsd" \
+					--disable-static \
+					--enable-shared; \
+			emmake make -j1; \
+			emmake make install; \
 		# Copy the imagick extension
-		wget https://github.com/Imagick/imagick/archive/refs/heads/master.zip && \
-			unzip master.zip && \
-			rm master.zip && \
-			cd imagick-master && \
+		cd /root/ ; \
+		wget https://github.com/Imagick/imagick/archive/refs/heads/master.zip; \
+			unzip master.zip; \
+			rm master.zip; \
+			cd imagick-master; \
 			phpize . ; \
 			source /root/emsdk/emsdk_env.sh; \
-			emconfigure ./configure --host="i386-unknown-freebsd" --disable-static --enable-shared; \
-			# TODO: Understand why some files need ot be removed before building
-			EMCC_SKIP="/usr/local/lib/libMagickCore-7.Q16HDRI.so /usr/local/lib/libMagickWand-7.Q16HDRI.so" \
-				emmake make -j1; \
-			ls -la .; \
-			ls -la ./modules; \
-			cp ./modules/imagick.so "/root/output/${PHP_VERSION_ESCAPED}"; \
+			emconfigure ./configure \
+				--host="i386-unknown-freebsd" \
+				--disable-static \
+				--enable-shared; \
+			emmake make -j1; \
+			ls -la /root/imagick-master; \
+			ls -la /root/imagick-master/modules; \
+			cp /root/imagick-master/modules/imagick.* "/root/output/${PHP_VERSION_ESCAPED}"; \
 	fi;
