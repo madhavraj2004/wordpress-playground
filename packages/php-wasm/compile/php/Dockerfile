@@ -1280,12 +1280,15 @@ RUN set -euxo pipefail; \
 			rm ImageMagick.tar.gz; \
 			cd ImageMagick-*; \
 			source /root/emsdk/emsdk_env.sh; \
+			# Disable functions that are not supported by Emscripten
+			## TODO: Check if we can support these functions
 			ac_cv_func_vfprintf_l=no \
 			ac_cv_func_vsnprintf_l=no \
 			ac_cv_func_getexecname=no \
 			ac_cv_func__NSGetExecutablePath=no \
 			ac_cv_func_getdtablesize=no \
 				emconfigure ./configure \
+					# Disable X11 support
 					--without-x \
 					--host="i386-unknown-freebsd" \
 					--disable-static \
