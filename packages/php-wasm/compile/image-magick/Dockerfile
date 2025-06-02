@@ -8,6 +8,7 @@ RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz; \
     rm ImageMagick.tar.gz; \
     cd ImageMagick-*; \
     source /root/emsdk/emsdk_env.sh; \
+
     # Disable functions that are not supported by Emscripten
     ## TODO: Check if we can support these functions
     ac_cv_func_vfprintf_l=no \
@@ -22,7 +23,6 @@ RUN wget https://imagemagick.org/archive/ImageMagick.tar.gz; \
             --disable-openmp \
             --without-threads \
             ## Build shared library
-            --host="i386-unknown-freebsd" \
             --disable-static \
             --enable-shared; \
     export EMCC_FLAGS="-sSIDE_MODULE -D__x86_64__ -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=0 -sWARN_ON_UNDEFINED_SYMBOLS=0"; \
