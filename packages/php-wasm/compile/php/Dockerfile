@@ -37,7 +37,6 @@ COPY ./libsqlite3/ /root/builds/libsqlite3
 COPY ./libxml2/ /root/builds/libxml2
 COPY ./libz/ /root/builds/libz
 COPY ./oniguruma/ /root/builds/oniguruma
-COPY ./imagick/ /root/builds/imagick
 RUN if [ "$WITH_JSPI" = "yes" ]; then \
 	cp -r /root/builds/*/jspi/dist/root/lib/* /root/lib; \
 else \
@@ -1290,11 +1289,15 @@ RUN set -euxo pipefail; \
 				emconfigure ./configure \
 					# Disable X11 support
 					--without-x \
+					## Disable libm
+					--disable-openmp \
+					--without-threads \
+					## Build shared library
 					--host="i386-unknown-freebsd" \
-					--disable-static \
-					--enable-shared; \
+					--enable-static; \
 			emmake make -j1; \
 			emmake make install; \
+			ls -la /usr/local/lib; \
 		# Copy the imagick extension
 		cd /root/ ; \
 		wget https://github.com/Imagick/imagick/archive/refs/heads/master.zip; \
@@ -1307,6 +1310,8 @@ RUN set -euxo pipefail; \
 				--host="i386-unknown-freebsd" \
 				--disable-static \
 				--enable-shared; \
+			export EXPORTED_FUNCTIONS=$'["MagickWandGenesis"]'; \
+			export EMCC_FLAGS="$EMCC_FLAGS -l/usr/local/lib/libMagick++-7.Q16HDRI.a -l/usr/local/lib/libMagickCore-7.Q16HDRI.a -l/usr/local/lib/libMagickWand-7.Q16HDRI.a"; \
 			emmake make -j1; \
 			ls -la /root/imagick-master; \
 			ls -la /root/imagick-master/modules; \
